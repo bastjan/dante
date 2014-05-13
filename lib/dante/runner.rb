@@ -252,12 +252,8 @@ module Dante
     # If log_path is nil, redirect to /dev/null to quiet output
     def redirect_output!
       if log_path = options[:log_path]
-        # if the log directory doesn't exist, create it
-        FileUtils.mkdir_p File.dirname(options[:log_path]), :mode => 0755
-        # touch the log file to create it
-        FileUtils.touch log_path
-        # Set permissions on the log file
-        File.chmod(0644, log_path)
+        # create log file if it does not exists
+        create_log_file(log_path) unless File.exists?(log_path)
         # Reopen $stdout (NOT +STDOUT+) to start writing to the log file
         $stdout.reopen(log_path, 'a')
         # Redirect $stderr to $stdout
@@ -271,6 +267,15 @@ module Dante
         $stderr.reopen $stdout
       end
       log_path = options[:log_path] ? options[:log_path] : '/dev/null'
+    end
+
+    def create_log_file(log_path)
+      # if the log directory doesn't exist, create it
+      FileUtils.mkdir_p File.dirname(log_path), :mode => 0755
+      # touch the log file to create it
+      FileUtils.touch log_path
+      # Set permissions on the log file
+      File.chmod(0644, log_path)
     end
 
     # Runs until the block condition is met or the timeout_seconds is exceeded
